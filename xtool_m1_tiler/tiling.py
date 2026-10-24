@@ -8,7 +8,7 @@ che differiscono di 1 punto, invisibili sul legno) la testa non attraversa i vuo
 from __future__ import annotations
 
 from shapely.affinity import translate
-from shapely.geometry import box
+from shapely.geometry import LineString, box
 
 
 def tight_area(g):
@@ -18,9 +18,19 @@ def tight_area(g):
     return (x1 - x0) * (y1 - y0), (x0, y0, x1, y1)
 
 
-def partition(G, max_groups: int = 8, overhead_mm2: float = 390.0, step: float = 1.5):
+def _crossing(G, kind, v, b):
+    """Lunghezza (mm) di inchiostro attraversata dalla linea di taglio."""
+    x0, y0, x1, y1 = b.bounds
+    line = LineString([(v, y0), (v, y1)]) if kind == "v" else LineString([(x0, v), (x1, v)])
+    return G.intersection(line).length
+
+
+def partition(G, max_groups: int = 8, overhead_mm2: float = 390.0, step: float = 1.5,
+              seam_free: bool = True, tol: float = 0.05):
     """Taglio ricorsivo del riquadro (guillotine) che minimizza la somma dei riquadri stretti.
-    overhead_mm2 = costo di un gruppo in piu' espresso come area equivalente."""
+    overhead_mm2 = costo di un gruppo in piu' espresso come area equivalente.
+    seam_free=True: si taglia SOLO dove la linea di taglio non attraversa inchiostro (nessuna giunzione
+    visibile: due gruppi che si toccano su un tratto lasciano una riga piu' scura/chiara)."""
     leaves = [box(*G.bounds)]
     while len(leaves) < max_groups:
         best = None
@@ -36,6 +46,8 @@ def partition(G, max_groups: int = 8, overhead_mm2: float = 390.0, step: float =
             while y < y1 - step:
                 cands.append(("h", y)); y += step
             for kind, v in cands:
+                if seam_free and _crossing(G, kind, v, b) > tol:
+                    continue
                 if kind == "v":
                     b1, b2 = box(x0, y0, v, y1), box(v, y0, x1, y1)
                 else:
@@ -51,10 +63,14 @@ def partition(G, max_groups: int = 8, overhead_mm2: float = 390.0, step: float =
     return leaves
 
 
-def make_tiles(G, max_groups: int = 8, overhead_mm2: float = 390.0, overlap: float = 0.12):
-    """Ritorna la lista di geometrie (una per gruppo). Le giunzioni si sovrappongono di `overlap` mm."""
+def make_tiles(G, max_groups: int = 8, overhead_mm2: float = 390.0, overlap: float = 0.0,
+               seam_free: bool = True):
+    """Ritorna la lista di geometrie (una per gruppo).
+    Con seam_free=True (default) i gruppi si separano solo nei vuoti e overlap resta 0.
+    Con seam_free=False e overlap>0 i gruppi possono tagliare i tratti: la sovrapposizione doppia
+    (overlap = una riga) lascia pero' una riga piu' scura visibile sulle zone piene."""
     tiles = []
-    for b in partition(G, max_groups, overhead_mm2):
+    for b in partition(G, max_groups, overhead_mm2, step=0.5 if seam_free else 1.5, seam_free=seam_free):
         x0, y0, x1, y1 = b.bounds
         g = G.intersection(box(x0 - overlap, y0 - overlap, x1 + overlap, y1 + overlap))
         if not g.is_empty and g.area > 0.05:

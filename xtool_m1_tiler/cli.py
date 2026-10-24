@@ -24,6 +24,7 @@ def main(argv=None):
     ap.add_argument("--cut-passes", type=int, default=2)
     ap.add_argument("--max-groups", type=int, default=8, help="numero massimo di gruppi (oltre 4-6 il guadagno e' minimo)")
     ap.add_argument("--overhead", type=float, default=0.4, help="minuti persi per ogni gruppo in piu'")
+    ap.add_argument("--allow-seams", action="store_true", help="permette di dividere anche attraverso i tratti (con 0,12 mm di sovrapposizione): piu' veloce ma si vede una riga scura sulle zone piene")
     ap.add_argument("--cut-color", default="#ff0000", help="colore del tratto di taglio nell'SVG")
     a = ap.parse_args(argv)
 
@@ -31,7 +32,8 @@ def main(argv=None):
     prev = a.preview
     opt = Options(size_mm=a.size, thickness_mm=a.thickness, power=a.power, speed=a.speed, density=a.density,
                   cut_power=a.cut_power, cut_speed=a.cut_speed, cut_passes=a.cut_passes,
-                  max_groups=a.max_groups, overhead_min=a.overhead, cut_color=a.cut_color)
+                  max_groups=a.max_groups, overhead_min=a.overhead, cut_color=a.cut_color,
+                  seam_free=not a.allow_seams, overlap_mm=0.12 if a.allow_seams else 0.0)
     r = convert(a.svg, out, opt, prev)
     print(f"Scritto: {r.out_path}")
     print(f"Misura incisione: {r.size_mm[0]:.1f} x {r.size_mm[1]:.1f} mm, gruppi: {r.groups}")

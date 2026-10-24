@@ -28,7 +28,8 @@ class Options:
     cut_passes: int = 2
     max_groups: int = 8
     overhead_min: float = 0.4       # costo (minuti) di un gruppo in piu'
-    overlap_mm: float = 0.12
+    overlap_mm: float = 0.0
+    seam_free: bool = True          # taglia i gruppi solo nei vuoti (nessuna giunzione visibile)
     cut_color: str = "#ff0000"      # colore del tratto che indica il taglio nell'SVG
     margin_mm: float = 6.0
 
@@ -60,7 +61,7 @@ def convert(svg_path: str, out_xcs: str, opt: Options | None = None, preview_png
     # costo di un gruppo in piu' espresso come area di riquadro equivalente
     area_per_min = pitch * opt.speed * 60.0 * EFFICIENCY      # mm2 di riquadro scansionati al minuto
     overhead_mm2 = opt.overhead_min * area_per_min
-    tiles = make_tiles(G, opt.max_groups, overhead_mm2, opt.overlap_mm)
+    tiles = make_tiles(G, opt.max_groups, overhead_mm2, opt.overlap_mm, opt.seam_free)
     if len(tiles) > len(BUMPS):
         tiles = tiles[:len(BUMPS)]
 

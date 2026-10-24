@@ -38,7 +38,11 @@ python -m xtool_m1_tiler.gui        # small Tkinter window
 
 SVG conventions: **engraving = shapes with a fill** (any colour, even-odd fill rule), **cut = stroke red (`#ff0000`) with no fill**. Units/transforms/`<use>` are handled by `svgelements`. Use `--cut-color` to change the cut colour.
 
-Options: `--size` (long side, mm), `--thickness` (mm, sets the focus in the .xcs), `--power/--speed/--density` (engraving: density = lines per cm, 100 = 0.1 mm, 83 = 0.12 mm, 67 = 0.15 mm), `--cut-power/--cut-speed/--cut-passes`, `--max-groups`, `--overhead` (minutes lost per extra group).
+Options: `--allow-seams`, `--size` (long side, mm), `--thickness` (mm, sets the focus in the .xcs), `--power/--speed/--density` (engraving: density = lines per cm, 100 = 0.1 mm, 83 = 0.12 mm, 67 = 0.15 mm), `--cut-power/--cut-speed/--cut-passes`, `--max-groups`, `--overhead` (minutes lost per extra group).
+
+## Seams between groups
+
+When a group boundary crosses engraved strokes, a faint seam can appear on large solid areas (a darker line when the groups overlap by one line pitch, possibly a lighter one when they do not line up with the row grid). It is hardly visible on thin lines and essentially invisible to people who are not in the trade, but a trained eye sees it. The default mode (`seam_free`) therefore only cuts through empty space, which gains less on connected drawings. `--allow-seams` splits through strokes (0.12 mm overlap): faster, with a faint seam. Test on scrap and decide.
 
 ## Notes and limits
 
