@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xtool-m1-tiler"
+version = "0.1.0"
+description = "Divide l'incisione a riempimento di un SVG in gruppi compatti per ridurre il tempo di lavoro su xTool M1 (file .xcs)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = ["shapely>=2.0", "svgelements>=1.9", "pillow>=9.0", "numpy"]
+
+[project.scripts]
+xtool-m1-tiler = "xtool_m1_tiler.cli:main"
+xtool-m1-tiler-gui = "xtool_m1_tiler.gui:main"
+
+[tool.setuptools]
+packages = ["xtool_m1_tiler"]
